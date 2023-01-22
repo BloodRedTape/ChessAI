@@ -1,0 +1,7 @@
+out
+.vs
+.vscode
+.cache
+.clangd
+.idea
+CMakeSettings.json
