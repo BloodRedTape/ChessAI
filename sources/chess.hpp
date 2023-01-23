@@ -7,18 +7,21 @@
 #include "char.hpp"
 
 enum class FigureType {
-    Pawn = 'P',
-    Bishop = 'B',
-    Knight = 'k',
-    Rook = 'R',
-    Queen = 'Q',
-    King = 'K'
+    Pawn,
+    Bishop,
+    Knight,
+    Rook,
+    Queen,
+    King
 };
 
 enum class FigureSide {
 	White,
 	Black
 };
+
+const char* FigureTypeToString(FigureType type);
+const char* FigureSideToString(FigureSide side);
 
 struct Figure {
     FigureType Type;
@@ -29,28 +32,6 @@ struct Figure {
         Side(side)
     {}
 };
-
-inline char ToChar(const Optional<Figure> &figure) {
-    if (figure.HasValue())
-        return (char)figure.Value().Type;
-    else
-        return ' ';
-}
-
-constexpr char* NC  = "\033[0m";
-constexpr char* RED = "\033[38;2;255;0;0m";
-constexpr char* GRN = "\033[38;2;0;255;0m";
-
-inline const char* ToColor(const Optional<Figure>& figure) {
-    if (figure.HasValue()) {
-        if (figure.Value().Side == FigureSide::White)
-            return GRN;
-        else
-            return RED;
-    }
-    return NC;
-}
-
 
 struct Position {
     int X = -1, Y = -1;

@@ -20,11 +20,11 @@ public:
 
 	virtual void OnUpdate(float dt) = 0;
 
-	void DrawRect(int x, int y, Color color, Texture2D* texture);
+	void DrawRect(int x, int y, Color color, const Texture2D* texture);
 
 	void DrawRect(int x, int y, Color color);
 
-	void DrawRect(int x, int y, Texture2D* texture);
+	void DrawRect(int x, int y, const Texture2D* texture);
 
 	virtual void OnEvent(const Event& e);
 };

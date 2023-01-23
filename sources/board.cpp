@@ -16,6 +16,7 @@ Board::Board()
 }
 
 void Board::Dump() {
+#if 0
 	for (int i = 0; i < 8; i++) {
 		Print("%", 8 - i);
 		for (int j = 0; j < 8; j++) {
@@ -28,6 +29,7 @@ void Board::Dump() {
 		Print("|\n");
 	}
 	Println("  a b c d e f g h");
+#endif
 }
 
 void Board::DoMove(Position src, Position dst) {
