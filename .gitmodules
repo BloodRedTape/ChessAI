@@ -1,3 +1,6 @@
 [submodule "libs/base"]
 	path = libs/base
 	url = https://github.com/straitx/base
+[submodule "libs/2d"]
+	path = libs/2d
+	url = https://github.com/straitx/2d

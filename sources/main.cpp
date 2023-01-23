@@ -3,192 +3,17 @@
 #include <core/ranges/algorithm.hpp>
 #include <core/ranges/filtered.hpp>
 #include <core/ranges/transformed.hpp>
+#include <core/os/clock.hpp>
+#include <core/os/sleep.hpp>
 #include "chess.hpp"
 #include "char.hpp"
 #include <string>
 #include <iostream>
-
-bool IsValidMoveString(const std::string& move) {
-	return move.size() == 4
-		&& IsLowerCaseLetter(move[0])
-		&& IsDigit(move[1])
-		&& IsLowerCaseLetter(move[2])
-		&& IsDigit(move[3]);
-}
-
-class MovesBuilder {
-	List<Position> m_Positions;
-	Board& m_Board;
-	SIPosition m_Source;
-public:
-	MovesBuilder(Board &board, SIPosition source):
-		m_Board(board),
-		m_Source(source)
-	{}
-	
-	void Axis(int dx, int dy) {
-		for (int i = 1; i < 8; i++) {
-			auto pos = m_Source.Adv(i * dx, i * dy);
-			if (IsValidEmpty(pos)) {
-				m_Positions.Add(pos);
-			}
-			if (IsValidEnemy(pos)) {
-				m_Positions.Add(pos);
-				break;
-			}
-		}
-	}
-
-	void Capture(int x, int y) {
-		auto pos = m_Source.Adv(x, y);
-		if (IsValidEnemy(pos))
-			m_Positions.Add(pos);
-	}
-
-	void Translate(int x, int y) {
-		auto pos = m_Source.Adv(x, y);
-		if (IsValidEmpty(pos))
-			m_Positions.Add(pos);
-	}
-
-	void CaptureOrTranslate(int x, int y) {
-		auto pos = m_Source.Adv(x, y);
-		if (IsValidEnemy(pos) || IsValidEmpty(pos))
-			m_Positions.Add(pos);
-	}
-
-	List<Position>&& Dump() {
-		return Move(m_Positions);
-	}
-private:
-	bool IsValidEmpty(SIPosition position){
-		if(position.IsValid())
-			return !m_Board[position].HasValue();
-		return false;
-	}
-
-	bool IsValidEnemy(SIPosition position) {
-		if (position.IsValid() && m_Board[position].HasValue())
-			return m_Board[position].Value().Side != position.Side;
-		return false;
-	}
-};
-
-struct Game {
-private:
-	Board m_Board;
-public:
-
-	void Run() {
-
-		for (;;) {
-			m_Board.Dump();
-
-			Position src, dst;
-			for (;;) {
-				Print("Enter Move:");
-				std::string move;
-				std::getline(std::cin, move);
-
-				if (!IsValidMoveString(move)) {
-					Println("Invalid Move Encoding");
-				}
-				else {
-					src = Position(move[0], move[1] - '0');
-					dst = Position(move[2], move[3] - '0');
-					break;
-				}
-			}
-
-			m_Board.DoMove(src, dst);
-			Print("\n");
-		}
-	}
-
-	List<Position> DumpPossibleMoves(Position source) {
-		Optional<Figure>& src_figure = m_Board[source];
-
-		if (!src_figure.HasValue())
-			return {};
-
-		FigureType type = src_figure.Value().Type;
-		FigureSide side = src_figure.Value().Side;
-		
-		SIPosition src(source, side);
-
-		MovesBuilder builder(m_Board, src);
-		
-		switch (type) {
-		case FigureType::Pawn: {
-			builder.Translate(1, 0);
-			if(src.X == 1)
-				builder.Translate(2, 0);
-			builder.Capture(1, 1);
-			builder.Capture(1,-1);
-		}break;
-		case FigureType::Bishop: {
-			builder.Axis( 1,  1);
-			builder.Axis(-1,  1);
-			builder.Axis( 1, -1);
-			builder.Axis(-1, -1);
-		}break;
-		case FigureType::Knight: {
-			builder.CaptureOrTranslate(1, 2);
-			builder.CaptureOrTranslate(2, 1);
-			builder.CaptureOrTranslate(-1, 2);
-			builder.CaptureOrTranslate(-2, 1);
-			builder.CaptureOrTranslate(1, -2);
-			builder.CaptureOrTranslate(2, -1);
-			builder.CaptureOrTranslate(-1, -2);
-			builder.CaptureOrTranslate(-2, -1);
-		}break;
-		case FigureType::Rook: {
-			builder.Axis( 1,  0);
-			builder.Axis(-1,  0);
-			builder.Axis( 0,  1);
-			builder.Axis( 0, -1);
-		}break;
-		case FigureType::Queen: {
-			builder.Axis( 1,  1);
-			builder.Axis(-1,  1);
-			builder.Axis( 1, -1);
-			builder.Axis(-1, -1);
-
-			builder.Axis( 1,  0);
-			builder.Axis(-1,  0);
-			builder.Axis( 0,  1);
-			builder.Axis( 0, -1);
-		}break;
-		case FigureType::King: {
-			builder.CaptureOrTranslate(1, 1);
-			builder.CaptureOrTranslate(-1, 1);
-			builder.CaptureOrTranslate(1, -1);
-			builder.CaptureOrTranslate(-1, -1);
-
-			builder.CaptureOrTranslate(1, 0);
-			builder.CaptureOrTranslate(-1, 0);
-			builder.CaptureOrTranslate(0, 1);
-			builder.CaptureOrTranslate(0, -1);
-		}break;
-		default:
-			SX_ASSERT(false);
-		}
-
-		return builder.Dump();
-	}
-
-	bool IsValidEmpty(SIPosition position){
-		if(position.IsValid())
-			return !m_Board[position].HasValue();
-		return false;
-	}
-
-	bool IsValidEnemy(SIPosition position) {
-		if (position.IsValid() && m_Board[position].HasValue())
-			return m_Board[position].Value().Side != position.Side;
-		return false;
-	}
-};
+#include <2d/rect_renderer.hpp>
+#include <graphics/render_window.hpp>
+#include <graphics/api/fence.hpp>
+#include <graphics/api/gpu.hpp>
+#include <graphics/api/command_buffer.hpp>
 
 template<typename ValueType>
 auto HigherThan(ValueType value) {
@@ -203,25 +28,73 @@ inline auto Increment() {
 	});
 }
 
+class Application {
+private:
+	RenderWindow m_Window{ 1080, 1080, "window", TextureFormat::Depth32};
+	RectRenderer m_Renderer{ m_Window.FramebufferPass() };
+public:
+	Application() {
+		m_Window.SetEventsHandler({ this, &Application::OnEvent });
+	}
+
+	void Run() {
+		Semaphore acq, pst;
+		Fence render;
+
+		UniquePtr<CommandPool> cmd_pool(CommandPool::Create());
+		UniquePtr<CommandBuffer, CommandBufferDeleter> cmd_buffer(cmd_pool->Alloc(), { cmd_pool.Get() });
+
+		Clock cl;
+		while (m_Window.IsOpen()) {
+			Time dt = cl.Restart();
+
+			Sleep(Max<Time>(Milliseconds(16) - dt , Milliseconds(0)));
+			
+			if (m_Window.IsFocused()) {
+
+				const float cube_size = 1.f / 8.f;
+				for (int i = 0; i < 8; i++)
+					for (int j = 0; j < 8; j++)
+						m_Renderer.DrawRect(Vector2f{ i * cube_size, j * cube_size } - Vector2f(0.5, 0.5), { cube_size, cube_size }, (i * 9 + j) % 2 == 0 ? Color::Black : Color::White);
+
+				m_Window.AcquireNextFramebuffer(&acq);
+				cmd_buffer->Begin();
+				{
+					cmd_buffer->ClearColor(m_Window.CurrentFramebuffer()->Attachments()[0], Color::LightBlue);
+					ViewportParameters params;
+					params.ViewportSize = { 1, 1 };
+					m_Renderer.CmdRender(cmd_buffer.Get(), m_Window.CurrentFramebuffer(), params);
+				}
+				cmd_buffer->End();
+				GPU::Execute(cmd_buffer.Get(), acq, pst, render);
+				render.WaitAndReset();
+				m_Window.PresentCurrentFramebuffer(&pst);
+			}
+
+			m_Window.DispatchEvents();
+		}
+
+		GPU::WaitIdle();
+	}
+
+	void OnEvent(const Event& e) {
+		if (e.Type == EventType::WindowClose)
+			m_Window.Close();
+	}
+
+};
+
 int main() {
-	//int *res = list | Find(3);
-	//bool has = list | Increment() | HigherThan(3) | Contains(3);
-	//Println("%", *res);
-	//Println("%", has);
 
-	List<int> list = { 1, 2, 3, 4 };
-
-	for (int& e : list | HigherThan(2)) 
-		e = 0;
-
-	Println("%", list);
-
-
+	GPU::ForceInit();
 	Position pos('a', 5);
 	SIPosition ai_pos(pos, FigureSide::White);
 	SX_ASSERT(pos.X == ai_pos.ToPosition().X);
 	SX_ASSERT(pos.Y == ai_pos.ToPosition().Y);
 	Println("%", ai_pos.ToPosition());
+
+	Application app;
+	app.Run();
 	Game game;
 	game.Run();
 }
