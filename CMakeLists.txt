@@ -7,7 +7,8 @@ add_subdirectory(libs/2d)
 
 set(SAMPLE_SOURCES
     "sources/main.cpp"
- "sources/chess.cpp")
+    "sources/pixel_engine.cpp"
+ "sources/chess.cpp" "sources/board.cpp" "sources/moves_builder.cpp")
 
 set(SAMPLE_INCLUDE
     "./sources"
