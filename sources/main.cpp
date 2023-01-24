@@ -59,7 +59,6 @@ public:
 				DrawPixel(pos.X, 7 - pos.Y,  (is_attacking ? Color::Red : Color::Orange) * semi_transparent);
 			}
 
-			DrawPixel(m_DragingPosition.x - m_DragInFigureOffset.x, m_DragingPosition.y - m_DragInFigureOffset.y, FigureTexture(m_DragingFigure.Value()));
 		}
 
 		for (int i = 0; i < 8; i++) {
@@ -71,6 +70,9 @@ public:
 					DrawPixel(x, y, FigureTexture(figure.Value()));
 			}
 		}
+
+		if (m_DragingFigure.HasValue()) 
+			DrawPixel(m_DragingPosition.x - m_DragInFigureOffset.x, m_DragingPosition.y - m_DragInFigureOffset.y, FigureTexture(m_DragingFigure.Value()));
 	}
 
 	void OnEvent(const Event& e)override {
