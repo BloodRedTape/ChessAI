@@ -22,6 +22,8 @@ private:
 	Position m_DragFigurePosition;
 	Vector2f m_DragingPosition;
 	Vector2f m_DragInFigureOffset;
+
+	FigureSide m_CurrentSide = FigureSide::White;
 public:
 	ChessGame():
 		PixelEngine("Chess", 8, 8, 100)
@@ -80,24 +82,30 @@ public:
 			m_DragInFigureOffset = pixel - Vector2f(figure_coords);
 			m_DragFigurePosition.Y = 7 - figure_coords.y;
 			m_DragFigurePosition.X = figure_coords.x;
-			m_DragingFigure = Move(m_Board[m_DragFigurePosition]);
+			if(m_Board[m_DragFigurePosition].HasValue() && m_Board[m_DragFigurePosition].Value().Side == m_CurrentSide)
+				m_DragingFigure = Move(m_Board[m_DragFigurePosition]);
 		}
 
 		if (e.Type == EventType::MouseButtonRelease) {
 			Vector2f pixel = MouseToPixel({e.MouseButtonPress.x, e.MouseButtonPress.y});
 			Vector2s figure_coords = pixel;
 
+			if (m_DragingFigure.HasValue() && m_DragingFigure.Value().Side == m_CurrentSide) {
 
-			List<Position> moves = m_Board.DumpPossibleMoves(m_DragFigurePosition, m_DragingFigure.Value());
+				List<Position> moves = m_Board.DumpPossibleMoves(m_DragFigurePosition, m_DragingFigure.Value());
 
-			Position try_pos;
-			try_pos.X = figure_coords.x;
-			try_pos.Y = 7 - figure_coords.y;
+				Position try_pos;
+				try_pos.X = figure_coords.x;
+				try_pos.Y = 7 - figure_coords.y;
 
-			if (moves | Contains(try_pos))
-				m_Board[try_pos] = Move(m_DragingFigure);
-			else
-				m_Board[m_DragFigurePosition] = Move(m_DragingFigure);
+				if (moves | Contains(try_pos)) {
+					m_Board[try_pos] = Move(m_DragingFigure);
+
+					m_CurrentSide = m_CurrentSide == FigureSide::White ? FigureSide::Black : FigureSide::White;
+				} else {
+					m_Board[m_DragFigurePosition] = Move(m_DragingFigure);
+				}
+			}
 		}
 	}
 
