@@ -39,34 +39,26 @@ void Board::DoMove(Position src, Position dst) {
 		return Println("Move is not possible, destination position is invalid: %", dst);
 
 
-	auto& src_figure = Figures[src.X][src.Y];
+	auto& src_figure = Figures[src.Y][src.X];
 
 	if (!src_figure.HasValue())
 		return Println("Position % has no figure", src);
 	//check if move is possible;
-	Figures[dst.X][dst.Y] = Move(src_figure);
+	Figures[dst.Y][dst.X] = Move(src_figure);
 }
 
-List<Position> Board::DumpPossibleMoves(Position source) {
-	Optional<Figure>& src_figure = (*this)[source];
-
-	if (!src_figure.HasValue())
-		return {};
-
-	FigureType type = src_figure.Value().Type;
-	FigureSide side = src_figure.Value().Side;
-
-	SIPosition src(source, side);
+List<Position> Board::DumpPossibleMoves(Position source, Figure src_figure) {
+	SIPosition src(source, src_figure.Side);
 
 	MovesBuilder builder(*this, src);
 
-	switch (type) {
+	switch (src_figure.Type) {
 	case FigureType::Pawn: {
-		builder.Translate(1, 0);
-		if (src.X == 1)
-			builder.Translate(2, 0);
+		builder.Translate(0, 1);
+		if (src.Y == 1)
+			builder.Translate(0, 2);
 		builder.Capture(1, 1);
-		builder.Capture(1, -1);
+		builder.Capture(-1, 1);
 	}break;
 	case FigureType::Bishop: {
 		builder.Axis(1, 1);

@@ -20,11 +20,27 @@ public:
 
 	virtual void OnUpdate(float dt) = 0;
 
-	void DrawRect(int x, int y, Color color, const Texture2D* texture);
+	void DrawPixel(float x, float y, Color color, const Texture2D* texture);
 
-	void DrawRect(int x, int y, Color color);
+	void DrawPixel(float x, float y, Color color);
 
-	void DrawRect(int x, int y, const Texture2D* texture);
+	void DrawPixel(float x, float y, const Texture2D* texture);
 
 	virtual void OnEvent(const Event& e);
+
+	const RenderWindow& Window()const {
+		return m_Window;
+	}
+
+	Vector2u Size()const {
+		return { (u32)m_Width, (u32)m_Height };
+	}
+
+	size_t PixelSize()const {
+		return m_PixelSize;
+	}
+
+	Vector2f MouseToPixel(Vector2s mouse)const{
+		return (Vector2f(mouse) / Vector2f(Window().Size())) * Vector2f(Size());
+	}
 };

@@ -47,17 +47,17 @@ void PixelEngine::Run() {
 	GPU::WaitIdle();
 }
 
-void PixelEngine::DrawRect(int x, int y, Color color, const Texture2D* texture) {
+void PixelEngine::DrawPixel(float x, float y, Color color, const Texture2D* texture) {
 	const Vector2f pixel_size = Vector2f(1.f / float(m_Width), 1.f/ float(m_Height));
 	m_Renderer.DrawRect(Vector2f(x, y) * pixel_size - Vector2f(0.5, 0.5), pixel_size, color, texture);
 }
 
-void PixelEngine::DrawRect(int x, int y, Color color) {
-	DrawRect(x, y, color, Texture2D::White());
+void PixelEngine::DrawPixel(float x, float y, Color color) {
+	DrawPixel(x, y, color, Texture2D::White());
 }
 
-void PixelEngine::DrawRect(int x, int y, const Texture2D* texture) {
-	DrawRect(x, y, Color::White, texture);
+void PixelEngine::DrawPixel(float x, float y, const Texture2D* texture) {
+	DrawPixel(x, y, Color::White, texture);
 }
 
 void PixelEngine::OnEvent(const Event& e) {
